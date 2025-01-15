@@ -45,4 +45,3 @@ const TemperatureText = styled.Text`
 `;
 
 export default DailyForecast;
-

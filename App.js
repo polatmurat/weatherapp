@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from "react";
-import { ScrollView, ImageBackground, FlatList, TouchableOpacity, TextInput, SafeAreaView } from "react-native";
+import { ScrollView, ImageBackground, FlatList, TouchableOpacity, TextInput, SafeAreaView, Image } from "react-native";
 import CurrentForecast from "./components/CurrentForecast";
-import DailyForecast from "./components/DailyForecast";
 import styled from "styled-components/native";
 import config from "./config";
 import bgImg from "./assets/4.png";
@@ -10,31 +9,32 @@ import cities from "./cities.json";
 const App = () => {
   const [weatherData, setWeatherData] = useState([]);
   const [forecastData, setForecastData] = useState([]);
+  
   const [selectedCity, setSelectedCity] = useState({ city: "Adana", country: "Turkey" });
   const [searchQuery, setSearchQuery] = useState("");
   const [filteredCities, setFilteredCities] = useState(cities);
   const [showCities, setShowCities] = useState(false);
 
+  // Mevcut hava durumu ve 5 günlük tahmin verisini çekme
   useEffect(() => {
     if (selectedCity) {
       const fetchWeatherData = async () => {
         const res = await fetch(
-          `http://api.openweathermap.org/data/2.5/weather?q=${selectedCity.city}&APPID=${config.API_KEY}`
+          `http://api.openweathermap.org/data/2.5/forecast?q=${selectedCity.city}&APPID=${config.API_KEY}&units=metric`
         );
-        const result = await res.json();
-        setWeatherData([{ city: selectedCity.city, country: selectedCity.country, weather: result }]);
+        const result = await res.json();        
+        setWeatherData([{ city: selectedCity.city, country: selectedCity.country, weather: result.list[0] }]);
 
-        const forecastRes = await fetch(
-          `http://api.openweathermap.org/data/2.5/onecall?lat=${result.coord.lat}&lon=${result.coord.lon}&exclude=hourly,minutely&units=metric&appid=${config.API_KEY}`
-        );
-        const forecastResult = await forecastRes.json();
-        setForecastData(forecastResult.daily.slice(1, 6));
+        // 5 günlük hava durumu tahmini verisini işleyin
+        const dailyForecast = result.list.filter((item, index) => index % 8 === 0); // Her 8. veriyi alıyoruz (günlük tahminler)
+        setForecastData(dailyForecast);
       };
 
       fetchWeatherData();
     }
   }, [selectedCity]);
 
+  // Şehir arama filtresi
   useEffect(() => {
     setFilteredCities(
       cities.filter(city =>
@@ -48,54 +48,69 @@ const App = () => {
     setShowCities(false);
   };
 
+  // 5 günlük hava tahminini göstermek için
+  const renderDailyForecast = () => {
+    return forecastData.map((day, index) => {
+      const date = new Date(day.dt * 1000); // Unix timestamp'tan tarihi elde ediyoruz
+      const weekday = date.toLocaleString("en-US", { weekday: "long" }); // Gün ismini alıyoruz
+      const icon = `http://openweathermap.org/img/wn/${day.weather[0].icon}.png`; // Hava durumu simgesini alıyoruz
+      const minTemp = day.main.temp_min.toFixed(1); // En düşük sıcaklık
+      const maxTemp = day.main.temp_max.toFixed(1); // En yüksek sıcaklık
+
+      return (
+        <DailyForecastItem key={index}>
+          <Text>{weekday}</Text>
+          <Image source={{ uri: icon }} style={{ width: 30, height: 30 }} />
+          <Text>{minTemp}°C / {maxTemp}°C</Text>
+        </DailyForecastItem>
+      );
+    });
+  };
+
   return (
-    <SafeAreaView style={{ flex: 1 }}>
-      <Container>
-        <ImageBackground source={bgImg} style={{ width: "100%", height: "100%" }}>
-          <SearchContainer>
-            <SearchInput
-              placeholder="Search city..."
-              placeholderTextColor="gray"
-              value={searchQuery}
-              onChangeText={setSearchQuery}
-              onFocus={() => setShowCities(true)}
-            />
-          </SearchContainer>
-          {showCities && (
-            <FlatList
-              data={filteredCities}
-              keyExtractor={(item) => item.city}
-              renderItem={({ item }) => (
-                <TouchableOpacity onPress={() => handleCitySelect(item)}>
-                  <CityItem>{item.city}, {item.country}</CityItem>
-                </TouchableOpacity>
-              )}
-            />
-          )}
-          <ScrollView contentContainerStyle={{ flexGrow: 1 }} style={{ flex: 1 }}>
-            <FutureForecastContainer>
-              {weatherData.length > 0 ? (
-                weatherData.map((data, index) => (
-                  <CurrentForecast
-                    key={index}
-                    currentWeather={data.weather}
-                    city={data.city}
-                    country={data.country}
-                  />
-                ))
-              ) : (
-                <NoWeather>No Weather to show</NoWeather>
-              )}
-              {forecastData.length > 0 && (
-                forecastData.map((day, index) => (
-                  <DailyForecast key={index} day={day} />
-                ))
-              )}
-            </FutureForecastContainer>
-          </ScrollView>
-        </ImageBackground>
-      </Container>
-    </SafeAreaView>
+    <Container>
+      <ImageBackground source={bgImg} style={{ width: "100%", height: "100%" }}>
+        <SearchContainer>
+          <SearchInput
+            placeholder="Search city..."
+            placeholderTextColor="gray"
+            value={searchQuery}
+            onChangeText={setSearchQuery}
+            onFocus={() => setShowCities(true)}
+          />
+        </SearchContainer>
+
+        {showCities && (
+          <FlatList
+            data={filteredCities}
+            keyExtractor={(item) => item.city}
+            renderItem={({ item }) => (
+              <TouchableOpacity onPress={() => handleCitySelect(item)}>
+                <CityItem>{item.city}, {item.country}</CityItem>
+              </TouchableOpacity>
+            )}
+          />
+        )}
+
+        <ScrollView contentContainerStyle={{ flexGrow: 1 }} style={{ flex: 1 }}>
+          <FutureForecastContainer>
+            {weatherData.length > 0 ? (
+              weatherData.map((data, index) => (
+                <CurrentForecast
+                  key={index}
+                  currentWeather={data.weather}
+                  city={data.city}
+                  country={data.country}
+                />
+              ))
+            ) : (
+              <NoWeather>No Weather to show</NoWeather>
+            )}
+            {forecastData.length > 0 && renderDailyForecast()}
+          </FutureForecastContainer>
+        </ScrollView>
+      </ImageBackground>
+    </Container>
   );
 };
 
@@ -135,7 +150,23 @@ const SearchContainer = styled.View`
   align-items: center;
   justify-content: center;
   margin: 10px;
+  margin-top: 50px;
   width: 100%;
+`;
+
+const DailyForecastItem = styled.View`
+  padding: 10px;
+  background-color: rgba(255, 255, 255, 0.7);
+  margin-bottom: 10px;
+  border-radius: 5px;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: center;
+`;
+
+const Text = styled.Text`
+  color: black;
+  font-size: 16px;
 `;
 
 export default App;
