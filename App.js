@@ -3,7 +3,7 @@ import { ScrollView, ImageBackground, FlatList, TouchableOpacity, TextInput, Saf
 import CurrentForecast from "./components/CurrentForecast";
 import styled from "styled-components/native";
 import config from "./config";
-import bgImg from "./assets/4.png";
+import bgImg from "./assets/4.jpg";
 import { Provider, useDispatch, useSelector } from 'react-redux';
 import store from './store';
 import { setWeatherData, setForecastData, setSelectedCity, setSearchQuery, setFilteredCities, setShowCities } from './store/weatherSlice';

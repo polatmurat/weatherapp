@@ -20,9 +20,9 @@ const CurrentForecast = ({ currentWeather, city, country }) => {
         source={{ uri: `http://openweathermap.org/img/wn/${weatherInfo.icon}@2x.png` }}
       />
       <AdditionalInfo>
-        <Text>Humidity: {main.humidity}%</Text>
-        <Text>Wind: {wind.speed} m/s</Text>
-        <Text>Pressure: {main.pressure} hPa</Text>
+        <Text style={{color: '#fff'}}>Humidity: {main.humidity}%</Text>
+        <Text style={{color: '#fff'}}>Wind: {wind.speed} m/s</Text>
+        <Text style={{color: '#fff'}}>Pressure: {main.pressure} hPa</Text>
       </AdditionalInfo>
     </Container>
   );
@@ -36,10 +36,12 @@ const Container = styled.View`
 const CityText = styled.Text`
   font-size: 24px;
   font-weight: bold;
+  color: #fff;
 `;
 
 const WeatherText = styled.Text`
   font-size: 20px;
+  color: #fff;
 `;
 
 const WeatherDescription = styled.Text`
@@ -50,6 +52,7 @@ const WeatherDescription = styled.Text`
 const TemperatureText = styled.Text`
   font-size: 48px;
   font-weight: bold;
+  color: #fff;
 `;
 
 const WeatherIcon = styled.Image`
@@ -59,6 +62,7 @@ const WeatherIcon = styled.Image`
 
 const AdditionalInfo = styled.View`
   margin-top: 10px;
+  color: #000;
 `;
 
 export default CurrentForecast;
