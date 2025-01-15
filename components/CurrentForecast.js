@@ -15,7 +15,7 @@ const CurrentForecast = ({ currentWeather, city, country }) => {
       <CityText>{city}, {country}</CityText>
       <WeatherText>{weatherInfo.main}</WeatherText>
       <WeatherDescription>{weatherInfo.description}</WeatherDescription>
-      <TemperatureText>{Math.round(main.temp - 273.15)}°C</TemperatureText>
+      <TemperatureText>{Math.round(main.temp)}°C</TemperatureText>
       <WeatherIcon
         source={{ uri: `http://openweathermap.org/img/wn/${weatherInfo.icon}@2x.png` }}
       />

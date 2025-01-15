@@ -1,19 +1,17 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect } from "react";
 import { ScrollView, ImageBackground, FlatList, TouchableOpacity, TextInput, SafeAreaView, Image } from "react-native";
 import CurrentForecast from "./components/CurrentForecast";
 import styled from "styled-components/native";
 import config from "./config";
 import bgImg from "./assets/4.png";
+import { Provider, useDispatch, useSelector } from 'react-redux';
+import store from './store';
+import { setWeatherData, setForecastData, setSelectedCity, setSearchQuery, setFilteredCities, setShowCities } from './store/weatherSlice';
 import cities from "./cities.json";
 
-const App = () => {
-  const [weatherData, setWeatherData] = useState([]);
-  const [forecastData, setForecastData] = useState([]);
-  
-  const [selectedCity, setSelectedCity] = useState({ city: "Adana", country: "Turkey" });
-  const [searchQuery, setSearchQuery] = useState("");
-  const [filteredCities, setFilteredCities] = useState(cities);
-  const [showCities, setShowCities] = useState(false);
+const AppContent = () => {
+  const dispatch = useDispatch();
+  const { weatherData, forecastData, selectedCity, searchQuery, filteredCities, showCities } = useSelector(state => state.weather);
 
   // Mevcut hava durumu ve 5 günlük tahmin verisini çekme
   useEffect(() => {
@@ -23,11 +21,11 @@ const App = () => {
           `http://api.openweathermap.org/data/2.5/forecast?q=${selectedCity.city}&APPID=${config.API_KEY}&units=metric`
         );
         const result = await res.json();        
-        setWeatherData([{ city: selectedCity.city, country: selectedCity.country, weather: result.list[0] }]);
+        dispatch(setWeatherData([{ city: selectedCity.city, country: selectedCity.country, weather: result.list[0] }]));
 
         // 5 günlük hava durumu tahmini verisini işleyin
         const dailyForecast = result.list.filter((item, index) => index % 8 === 0); // Her 8. veriyi alıyoruz (günlük tahminler)
-        setForecastData(dailyForecast);
+        dispatch(setForecastData(dailyForecast));
       };
 
       fetchWeatherData();
@@ -36,16 +34,16 @@ const App = () => {
 
   // Şehir arama filtresi
   useEffect(() => {
-    setFilteredCities(
+    dispatch(setFilteredCities(
       cities.filter(city =>
         city.city.toLowerCase().includes(searchQuery.toLowerCase())
       )
-    );
+    ));
   }, [searchQuery]);
 
   const handleCitySelect = (city) => {
-    setSelectedCity(city);
-    setShowCities(false);
+    dispatch(setSelectedCity(city));
+    dispatch(setShowCities(false));
   };
 
   // 5 günlük hava tahminini göstermek için
@@ -53,7 +51,7 @@ const App = () => {
     return forecastData.map((day, index) => {
       const date = new Date(day.dt * 1000); // Unix timestamp'tan tarihi elde ediyoruz
       const weekday = date.toLocaleString("en-US", { weekday: "long" }); // Gün ismini alıyoruz
-      const icon = `http://openweathermap.org/img/wn/${day.weather[0].icon}.png`; // Hava durumu simgesini alıyoruz
+      const icon = `http://openweathermap.org/img/wn/${day.weather[0].icon}.png`; // Hava durumu simgesini alıyoruz      
       const minTemp = day.main.temp_min.toFixed(1); // En düşük sıcaklık
       const maxTemp = day.main.temp_max.toFixed(1); // En yüksek sıcaklık
 
@@ -75,8 +73,8 @@ const App = () => {
             placeholder="Search city..."
             placeholderTextColor="gray"
             value={searchQuery}
-            onChangeText={setSearchQuery}
-            onFocus={() => setShowCities(true)}
+            onChangeText={(text) => dispatch(setSearchQuery(text))}
+            onFocus={() => dispatch(setShowCities(true))}
           />
         </SearchContainer>
 
@@ -113,6 +111,12 @@ const App = () => {
     </Container>
   );
 };
+
+const App = () => (
+  <Provider store={store}>
+    <AppContent />
+  </Provider>
+);
 
 const Container = styled.View`
   flex: 1;
