@@ -1,0 +1,13 @@
+[
+  { "city": "Tokyo", "country": "Japan" },
+  { "city": "Delhi", "country": "India" },
+  { "city": "Beijing", "country": "China" },
+  { "city": "Washington", "country": "USA" },
+  { "city": "London", "country": "UK" },
+  { "city": "Paris", "country": "France" },
+  { "city": "Berlin", "country": "Germany" },
+  { "city": "Ottawa", "country": "Canada" },
+  { "city": "Canberra", "country": "Australia" },
+  { "city": "Brasilia", "country": "Brazil" },
+  { "city": "Istanbul", "country": "Turkey" },
+  { "city": "Adana", "country": "Turkey" }]
